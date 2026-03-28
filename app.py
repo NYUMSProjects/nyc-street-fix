@@ -139,12 +139,34 @@ async def _run_auto_pipeline(image_path: str, description: str) -> str | None:
         return None
 
 
+async def _generate_audio_summary(text: str, client: genai.Client) -> str | None:
+    """Generate a short conversational summary and text-to-speech audio path."""
+    try:
+        response = client.models.generate_content(
+            model=settings.gemini_model,
+            contents=[types.Part(text=f"You are an AI 311 voice assistant. Read this street issue report and provide a friendly, conversational 2-3 sentence response acknowledging the issue, summarizing it simply, and asking one relevant follow-up question (e.g. asking for nearby cross streets, if anyone is injured, or if it's blocking traffic).\n\nDo NOT read the entire text, just provide the natural spoken response.\n\nReport:\n{text}")],
+            config=types.GenerateContentConfig(
+                temperature=0.7,
+            ),
+        )
+        audio_text = response.text.strip()
+        print(f"🎤 [TTS Audio Text Generated] -> {audio_text}")
+        from gtts import gTTS
+        tts = gTTS(text=audio_text, lang='en')
+        audio_path = str(VISUAL_CARD_DIR / f"tts_{uuid.uuid4().hex}.mp3")
+        tts.save(audio_path)
+        return audio_path
+    except Exception as e:
+        print(f"TTS Summary Error: {e}")
+        return None
+
+
 async def _chat_turn(
     message_text: str,
     attached_files: list[str],
     session_id: str,
-) -> tuple[str, str | None]:
-    """Run one conversational turn. Returns (text_reply, optional_card_path)."""
+) -> tuple[str, str | None, str | None]:
+    """Run one conversational turn. Returns (text_reply, optional_card_path, optional_audio_path)."""
     client = genai.Client(api_key=settings.gemini_api_key)
     history = _sessions.setdefault(session_id, [])
 
@@ -169,12 +191,16 @@ async def _chat_turn(
             history.append(
                 types.Content(role="model", parts=[types.Part(text=auto_reply)])
             )
-            return auto_reply, card_path
+            
+            # Generate conversational audio summary
+            audio_path = await _generate_audio_summary(auto_reply, client)
+
+            return auto_reply, card_path, audio_path
 
     # ── General LLM turn (text / audio / video / low-confidence image) ────
     user_parts = await _build_content_parts(message_text, attached_files, client)
     if not user_parts:
-        return "Please send a message or attach a file.", None
+        return "Please send a message or attach a file.", None, None
 
     history.append(types.Content(role="user", parts=user_parts))
 
@@ -189,7 +215,11 @@ async def _chat_turn(
     )
     reply = response.text.strip()
     history.append(types.Content(role="model", parts=[types.Part(text=reply)]))
-    return reply, None
+    
+    # Generate conversational audio summary
+    audio_path = await _generate_audio_summary(reply, client)
+
+    return reply, None, audio_path
 
 
 # ── Gradio helpers ─────────────────────────────────────────────────────────
@@ -211,20 +241,23 @@ def _chat_respond(
     session_state["id"] = session_id
 
     try:
-        reply, card_path = asyncio.run(_chat_turn(text, files, session_id))
+        reply, card_path, audio_path = asyncio.run(_chat_turn(text, files, session_id))
     except Exception as e:
         reply = f"❌ Error: {e}"
         card_path = None
+        audio_path = None
 
     session_state["card"] = card_path
 
-    # Build bot message — attach card image inline if available
-    bot_content: list | str
+    # Build bot message — attach card image and audio inline if available
+    bot_content: list = [reply]
     if card_path and Path(card_path).exists():
-        # Gradio 6: file messages use {"path": ...} format
-        bot_content = [reply, {"path": card_path}]
-    else:
-        bot_content = reply
+        bot_content.append({"path": card_path})
+    if audio_path and Path(audio_path).exists():
+        bot_content.append({"path": audio_path})
+        
+    if len(bot_content) == 1:
+        bot_content = bot_content[0]
 
     history.append({"role": "user", "content": _format_user_content(text, files)})
     history.append({"role": "assistant", "content": bot_content})
@@ -430,4 +463,5 @@ if __name__ == "__main__":
         show_error=True,
         theme=THEME,
         css=CSS,
+        allowed_paths=["/tmp/nyc_streetfix_cards"],
     )
