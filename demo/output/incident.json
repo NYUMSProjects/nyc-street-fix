@@ -1,0 +1,20 @@
+{
+  "issue_type": "clogged_catch_basin",
+  "severity": "high",
+  "safety_risk": "flooding_hazard",
+  "location_text": "Corner of Newark Ave and Grove St, Jersey City, NJ",
+  "coordinates": null,
+  "likely_agency": "DEP / 311",
+  "report_summary": "A drain at the corner of Newark Ave and Grove St in Jersey City, NJ is consistently flooding during rain, covering the entire sidewalk and pooling into the street. Visible debris is blocking the catch basin grate.",
+  "follow_up_questions": [],
+  "language": "en",
+  "media_attached": false,
+  "complaint_text": "A catch basin at the corner of Newark Ave",
+  "visual_card_path": "/Users/abhishekbakshi/personal/github/AI/NYCStreetFix/nyc-streetfix/demo/output/visual_card.png",
+  "translations": {
+    "es": "Una alcantarilla en la esquina de Newark Ave y Grove St en Jersey City, NJ se",
+    "zh": "\u4f4d\u4e8e Jersey City, NJ \u7684 Newark Ave \u548c Grove St \u8857\u89d2\u5904\u7684\u4e00\u4e2a\u6392\u6c34\u53e3"
+  },
+  "flood_history": null,
+  "mta_elevator_status": null
+}
