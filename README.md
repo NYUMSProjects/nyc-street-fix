@@ -242,6 +242,15 @@ nyc-streetfix/
 
 ---
 
+## Team
+
+- Anushri Iyer
+- Abhishek Bakshi
+- Akhilesh Vangala
+- Leo Lorence George
+
+---
+
 ## License
 
 MIT
