@@ -113,7 +113,7 @@ Image provided: {image_present}
 
 Classify the issue and respond with a JSON object using EXACTLY this schema:
 {{
-  "issue_type": "<one of: pothole, clogged_catch_basin, flooding, illegal_dumping, broken_traffic_signal, cracked_sidewalk, accessibility_barrier, fallen_tree, street_light_outage, graffiti, unknown>",
+  "issue_type": "<one of: pothole, street_condition, curb_condition, highway_condition, cracked_sidewalk, sidewalk_condition, accessibility_barrier, broken_traffic_signal, street_light_outage, street_sign_damaged, clogged_catch_basin, flooding, sewer, water_leak, illegal_dumping, dirty_condition, missed_collection, graffiti, fallen_tree, damaged_tree, overgrown_tree, illegal_parking, abandoned_vehicle, blocked_driveway, noise_street, noise_vehicle, unknown>",
   "severity": "<one of: low, moderate, high, critical>",
   "safety_risk": "<one of: none, vehicle_damage, pedestrian_slip_hazard, accessibility_blocked, traffic_disruption, flooding_hazard, falling_hazard>",
   "confidence": <float between 0.0 and 1.0>,
@@ -125,6 +125,8 @@ Guidelines:
 - Set confidence < 0.6 and issue_type = "unknown" if the issue cannot be clearly identified
 - Include follow_up_questions only when confidence < 0.6 or more info is needed
 - Severity: low=cosmetic, moderate=minor hazard, high=active hazard, critical=immediate danger
+- Prefer the most specific type: e.g. use "pothole" over "street_condition" when a pothole is visible
+- Use noise_street/noise_vehicle only when explicitly described; they cannot be detected from images
 - Respond ONLY with valid JSON, no markdown fences or explanation
 """
 
@@ -136,7 +138,7 @@ Image provided: {image_present}
 
 Extract all available information and respond with a JSON object using EXACTLY this schema:
 {{
-  "issue_type": "<one of: pothole, clogged_catch_basin, flooding, illegal_dumping, broken_traffic_signal, cracked_sidewalk, accessibility_barrier, fallen_tree, street_light_outage, graffiti, unknown>",
+  "issue_type": "<one of: pothole, street_condition, curb_condition, highway_condition, cracked_sidewalk, sidewalk_condition, accessibility_barrier, broken_traffic_signal, street_light_outage, street_sign_damaged, clogged_catch_basin, flooding, sewer, water_leak, illegal_dumping, dirty_condition, missed_collection, graffiti, fallen_tree, damaged_tree, overgrown_tree, illegal_parking, abandoned_vehicle, blocked_driveway, noise_street, noise_vehicle, unknown>",
   "severity": "<one of: low, moderate, high, critical>",
   "safety_risk": "<one of: none, vehicle_damage, pedestrian_slip_hazard, accessibility_blocked, traffic_disruption, flooding_hazard, falling_hazard>",
   "location_text": "<the location as described, or empty string>",
