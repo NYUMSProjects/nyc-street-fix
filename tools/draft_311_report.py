@@ -8,6 +8,7 @@ from google.genai import types
 from config.settings import get_settings
 from config.taxonomy import CATEGORY_311_CODES
 from schemas.incident import IncidentReport
+from tools.detect_language import language_name
 
 logger = structlog.get_logger(__name__)
 
@@ -30,10 +31,11 @@ Write a concise 311 complaint in 2-4 sentences. Requirements:
 - Do NOT include greetings or sign-offs
 
 Respond with ONLY the complaint text, no quotes or labels.
+{language_instruction}
 """
 
 
-async def draft_311_report(incident: IncidentReport) -> str:
+async def draft_311_report(incident: IncidentReport, user_lang: str = "en") -> str:
     """Generate a professional 311 complaint text for a given incident.
 
     Args:
@@ -49,6 +51,17 @@ async def draft_311_report(incident: IncidentReport) -> str:
     location = incident.location_text or "Location not specified"
     summary = incident.report_summary or "Street issue reported by resident."
 
+    lang_instruction = ""
+    if user_lang != "en":
+        target_name = language_name(user_lang)
+        lang_instruction = (
+            f"\nCRITICAL: The user speaks {target_name}. You MUST provide TWO versions of the "
+            f"complaint. First in {target_name}, and then in English. "
+            f"Format it exactly like this:\n\n"
+            f"**{target_name} Draft**:\n[draft in {target_name} here]\n\n"
+            f"---\n\n**English / 311 Official Version**:\n[English draft here]"
+        )
+
     prompt = DRAFT_PROMPT_TEMPLATE.format(
         issue_type=incident.issue_type.value,
         category_code=category_code,
@@ -58,6 +71,7 @@ async def draft_311_report(incident: IncidentReport) -> str:
         likely_agency=incident.likely_agency or "311",
         report_summary=summary,
         media_attached="Yes" if incident.media_attached else "No",
+        language_instruction=lang_instruction,
     )
 
     try:
@@ -66,7 +80,6 @@ async def draft_311_report(incident: IncidentReport) -> str:
             contents=[prompt],
             config=types.GenerateContentConfig(
                 temperature=0.3,
-                max_output_tokens=300,
             ),
         )
         complaint_text = response.text.strip()

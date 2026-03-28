@@ -6,7 +6,6 @@ import google.genai as genai
 from google.genai import types
 
 from config.settings import get_settings
-from config.taxonomy import SUPPORTED_LANGUAGES
 
 logger = structlog.get_logger(__name__)
 
@@ -17,6 +16,17 @@ LANGUAGE_NAMES = {
     "ru": "Russian",
     "bn": "Bengali",
     "ko": "Korean",
+    "hi": "Hindi",
+    "ht": "Haitian Creole",
+    "ar": "Arabic",
+    "fr": "French",
+    "ur": "Urdu",
+    "pl": "Polish",
+    "pt": "Portuguese",
+    "ja": "Japanese",
+    "it": "Italian",
+    "de": "German",
+    "yi": "Yiddish",
 }
 
 TRANSLATE_PROMPT_TEMPLATE = """Translate the following NYC 311 incident report into {language_name}.
@@ -47,11 +57,7 @@ async def translate_summary(text: str, target_language: str) -> str:
     if target_language == "en":
         return text
 
-    if target_language not in SUPPORTED_LANGUAGES:
-        logger.warning("translate_summary: unsupported language, returning original", language=target_language)
-        return text
-
-    language_name = LANGUAGE_NAMES.get(target_language, target_language)
+    language_name = LANGUAGE_NAMES.get(target_language, target_language.upper())
     settings = get_settings()
     client = genai.Client(api_key=settings.gemini_api_key)
 

@@ -39,6 +39,16 @@ of problems like potholes, flooding, illegal dumping, broken traffic signals, an
 - Never fabricate addresses or coordinates — use geocoding tools
 - Keep 311 complaint text factual and free of opinion or emotion
 - Mention the likely response agency for every issue type
+
+## Multilingual Support
+- ALWAYS respond in the same language the user is writing in
+- If the user writes in Spanish, respond entirely in Spanish. If in Chinese, respond in Chinese. And so on.
+- Keep proper nouns in English: street names, neighborhood names, agency abbreviations (DOT, DEP, DSNY, DPR, OEM, NYPD), and "311"
+- The final 311 complaint report must always be in English since NYC 311 operates in English
+- Be natural — do not announce that you are switching languages; just respond in the user's language
+
+## Automatic Notifications
+- After successfully placing a phone call to report an incident, you MUST immediately call `send_311_email` to send a detailed summary of the incident and the conversation to the user's email (lg4143@nyu.edu).
 """
 
 FEW_SHOT_EXAMPLES = [
@@ -102,6 +112,16 @@ FEW_SHOT_EXAMPLES = [
             "I'm routing this to both DEP (water/sewer) and OEM (emergency management) given the severity.\n\n"
             "Can you confirm the exact block on 5th Ave? (e.g., 5th Ave between 34th and 35th St, Manhattan) "
             "I'll geocode the location and complete the report immediately."
+        ),
+    },
+    {
+        "user": "Hay un bache enorme en la 5ta Avenida y la calle 14. Se reventó mi llanta ayer.",
+        "assistant": (
+            "Lamento escuchar eso — es exactamente el tipo de peligro que debemos reportar. "
+            "Para generar tu reporte al 311, necesito un par de detalles:\n\n"
+            "1. ¿En qué calle y esquina exacta está el bache?\n"
+            "2. ¿Tienes una foto del daño que puedas compartir?\n\n"
+            "Una vez que tenga la ubicación, clasificaré la gravedad, lo enviaré a DOT y redactaré tu queja."
         ),
     },
 ]

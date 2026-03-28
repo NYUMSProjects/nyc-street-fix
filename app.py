@@ -28,6 +28,7 @@ from tools.draft_311_report import draft_311_report
 from tools.extract_incident import extract_incident
 from tools.generate_visual_card import generate_visual_card
 from tools.geocode_location import geocode_location
+from tools.communications import make_311_call, send_311_sms, send_311_email
 
 settings = get_settings()
 
@@ -202,20 +203,23 @@ async def _chat_turn(
     if not user_parts:
         return "Please send a message or attach a file.", None, None
 
-    history.append(types.Content(role="user", parts=user_parts))
-
-    response = client.models.generate_content(
+    # Use a chat session for automatic function calling
+    chat = client.chats.create(
         model=settings.gemini_model,
-        contents=history,
+        history=history,
         config=types.GenerateContentConfig(
             system_instruction=SYSTEM_PROMPT,
             temperature=0.7,
-            max_output_tokens=1024,
-        ),
+            tools=[make_311_call, send_311_sms, send_311_email],
+        )
     )
+
+    response = chat.send_message(user_parts)
     reply = response.text.strip()
-    history.append(types.Content(role="model", parts=[types.Part(text=reply)]))
     
+    # Update our persistent history from the chat session
+    _sessions[session_id] = chat.get_history()
+
     # Generate conversational audio summary
     audio_path = await _generate_audio_summary(reply, client)
 

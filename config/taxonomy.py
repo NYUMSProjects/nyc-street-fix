@@ -134,4 +134,8 @@ CATEGORY_311_CODES: dict[IssueType, str] = {
     IssueType.UNKNOWN: "Other",
 }
 
-SUPPORTED_LANGUAGES: list[str] = ["en", "es", "zh", "ru", "bn", "ko"]
+SUPPORTED_LANGUAGES: list[str] = [
+    "en", "es", "zh", "ru", "bn", "ko",
+    "hi", "ht", "ar", "fr", "ur", "pl",
+    "pt", "ja", "it", "de", "yi",
+]
